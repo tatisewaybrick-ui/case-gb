@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Protótipo — Ativação Revendedora GB</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gb-green: #00703c;
+    --gb-green-light: #00a651;
+    --gb-green-pale: #e8f5ee;
+    --gb-green-dark: #004d2a;
+    --gb-pink: #d4006a;
+    --gb-gray: #f5f5f5;
+    --gb-gray-mid: #e0e0e0;
+    --gb-text: #1a1a1a;
+    --gb-muted: #888;
+    --gb-white: #ffffff;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+    --shadow-md: 0 8px 24px rgba(0,0,0,0.12);
+    --shadow-lg: 0 16px 48px rgba(0,0,0,0.16);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #0f1a14;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+    animation: fadeDown 0.6s ease both;
+  }
+  .header-label {
+    font-family: 'Sora', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gb-green-light);
+    margin-bottom: 12px;
+  }
+  .header h1 {
+    font-family: 'Sora', sans-serif;
+    font-size: clamp(24px, 4vw, 36px);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .header p {
+    font-size: 15px;
+    color: #aaa;
+    max-width: 520px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* TOGGLE */
+  .toggle-wrapper {
+    display: flex;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 50px;
+    padding: 4px;
+    margin-bottom: 48px;
+    animation: fadeDown 0.6s 0.1s ease both;
+  }
+  .toggle-btn {
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 28px;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #aaa;
+    background: transparent;
+  }
+  .toggle-btn.active {
+    background: var(--gb-green);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(0,112,60,0.4);
+  }
+  .toggle-btn.active.before {
+    background: #c0392b;
+    box-shadow: 0 4px 16px rgba(192,57,43,0.4);
+  }
+
+  /* PHONES CONTAINER */
+  .phones-container {
+    display: flex;
+    gap: 48px;
+    align-items: flex-start;
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: fadeUp 0.7s 0.2s ease both;
+  }
+
+  .phone-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .phone-label {
+    font-family: 'Sora', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 50px;
+    border: 1px solid;
+  }
+  .phone-label.before {
+    color: #e74c3c;
+    border-color: rgba(231,76,60,0.4);
+    background: rgba(231,76,60,0.08);
+  }
+  .phone-label.after {
+    color: var(--gb-green-light);
+    border-color: rgba(0,166,81,0.4);
+    background: rgba(0,166,81,0.08);
+  }
+
+  /* PHONE FRAME */
+  .phone {
+    width: 300px;
+    height: 620px;
+    background: var(--gb-white);
+    border-radius: 40px;
+    overflow: hidden;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.1);
+    position: relative;
+    border: 8px solid #1a1a1a;
+  }
+
+  .phone-notch {
+    width: 100px;
+    height: 24px;
+    background: #1a1a1a;
+    border-radius: 0 0 16px 16px;
+    margin: 0 auto;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 0;
+    z-index: 10;
+  }
+
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    background: var(--gb-gray);
+  }
+  .phone-screen::-webkit-scrollbar { display: none; }
+
+  /* APP HEADER */
+  .app-header {
+    background: var(--gb-white);
+    padding: 36px 16px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    box-shadow: var(--shadow-sm);
+  }
+  .app-logo {
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gb-green);
+    letter-spacing: 0.5px;
+  }
+  .app-icons { display: flex; gap: 12px; }
+  .app-icon {
+    width: 28px;
+    height: 28px;
+    background: var(--gb-gray);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+  }
+
+  /* SEARCH BAR */
+  .search-bar {
+    background: var(--gb-white);
+    margin: 8px 12px;
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--gb-gray-mid);
+  }
+  .search-bar span { font-size: 11px; color: #bbb; }
+
+  /* ===== BEFORE STATE ===== */
+  .before-screen .welcome-text {
+    padding: 16px 16px 8px;
+    font-family: 'Sora', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gb-text);
+  }
+
+  .before-card {
+    margin: 8px 12px;
+    background: var(--gb-white);
+    border-radius: var(--radius);
+    padding: 28px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+    box-shadow: var(--shadow-sm);
+  }
+  .before-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--gb-gray);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .before-icon .headset { font-size: 28px; }
+  .before-icon .clock-badge {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 22px;
+    height: 22px;
+    background: #555;
+    border-radius: 50%;
+    border: 2px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+  }
+  .before-card h3 {
+    font-family: 'Sora', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gb-text);
+  }
+  .before-card p {
+    font-size: 11px;
+    color: var(--gb-muted);
+    line-height: 1.5;
+  }
+
+  .identity-card {
+    margin: 8px 12px;
+    background: var(--gb-white);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .identity-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .identity-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--gb-gray);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+  .identity-card-header div h4 {
+    font-family: 'Sora', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .identity-card-header div p {
+    font-size: 10px;
+    color: var(--gb-muted);
+  }
+  .identity-btn {
+    width: 100%;
+    background: var(--gb-green);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    font-family: 'Sora', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  /* EMPTY STATE INDICATOR */
+  .empty-state {
+    margin: 8px 12px;
+    padding: 20px;
+    border: 2px dashed #e0e0e0;
+    border-radius: var(--radius);
+    text-align: center;
+  }
+  .empty-state p { font-size: 10px; color: #ccc; }
+
+  /* ===== AFTER STATE ===== */
+  .after-screen .welcome-banner {
+    background: linear-gradient(135deg, var(--gb-green-dark), var(--gb-green));
+    padding: 20px 16px 24px;
+    color: white;
+  }
+  .welcome-banner .greeting {
+    font-size: 11px;
+    opacity: 0.8;
+    margin-bottom: 4px;
+  }
+  .welcome-banner h2 {
+    font-family: 'Sora', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .welcome-banner .subtitle {
+    font-size: 11px;
+    opacity: 0.75;
+    line-height: 1.4;
+  }
+
+  /* PROGRESS BAR */
+  .progress-section {
+    background: var(--gb-white);
+    margin: 8px 12px;
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .progress-header span {
+    font-family: 'Sora', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gb-text);
+  }
+  .progress-header .pct {
+    font-size: 11px;
+    color: var(--gb-green);
+    font-weight: 700;
+  }
+  .progress-bar-track {
+    height: 6px;
+    background: var(--gb-gray);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gb-green), var(--gb-green-light));
+    border-radius: 3px;
+    width: 33%;
+    transition: width 1s ease;
+  }
+
+  /* STEPS */
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--gb-gray);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .step-item:last-child { border-bottom: none; }
+  .step-item:hover { opacity: 0.8; }
+
+  .step-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: 'Sora', sans-serif;
+    flex-shrink: 0;
+  }
+  .step-circle.done {
+    background: var(--gb-green);
+    color: white;
+  }
+  .step-circle.active {
+    background: var(--gb-green-pale);
+    color: var(--gb-green);
+    border: 2px solid var(--gb-green);
+    animation: pulse-step 2s infinite;
+  }
+  .step-circle.locked {
+    background: var(--gb-gray);
+    color: #ccc;
+  }
+
+  .step-info { flex: 1; }
+  .step-info h4 {
+    font-family: 'Sora', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gb-text);
+  }
+  .step-info p {
+    font-size: 10px;
+    color: var(--gb-muted);
+    margin-top: 1px;
+  }
+  .step-arrow { font-size: 12px; color: var(--gb-muted); }
+  .step-locked-icon { font-size: 12px; color: #ddd; }
+
+  /* PRODUTOS SUGERIDOS */
+  .section-title {
+    padding: 12px 16px 6px;
+    font-family: 'Sora', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gb-text);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .section-title span {
+    font-size: 10px;
+    color: var(--gb-green);
+    font-weight: 500;
+  }
+
+  .products-scroll {
+    display: flex;
+    gap: 10px;
+    padding: 4px 12px 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .products-scroll::-webkit-scrollbar { display: none; }
+
+  .product-card {
+    min-width: 110px;
+    background: var(--gb-white);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    flex-shrink: 0;
+  }
+  .product-img {
+    width: 100%;
+    height: 80px;
+    background: linear-gradient(135deg, #f0f7f3, #e8f5ee);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    position: relative;
+  }
+  .product-badge {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    background: var(--gb-pink);
+    color: white;
+    font-size: 8px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Sora', sans-serif;
+  }
+  .product-info {
+    padding: 8px;
+  }
+  .product-info h5 {
+    font-family: 'Sora', sans-serif;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--gb-text);
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+  .product-price {
+    font-size: 9px;
+    color: var(--gb-muted);
+    text-decoration: line-through;
+  }
+  .product-gain {
+    background: var(--gb-green-pale);
+    color: var(--gb-green);
+    font-size: 9px;
+    font-weight: 700;
+    font-family: 'Sora', sans-serif;
+    padding: 3px 6px;
+    border-radius: 4px;
+    margin-top: 4px;
+    display: inline-block;
+  }
+
+  /* KIT DESTAQUE */
+  .kit-card {
+    margin: 4px 12px 8px;
+    background: linear-gradient(135deg, #fff9f0, #fff3e0);
+    border: 1px solid #ffe0a0;
+    border-radius: var(--radius);
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .kit-emoji { font-size: 28px; }
+  .kit-info h4 {
+    font-family: 'Sora', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: #b8600a;
+    margin-bottom: 2px;
+  }
+  .kit-info p {
+    font-size: 9px;
+    color: #c87020;
+    line-height: 1.4;
+  }
+  .kit-arrow { margin-left: auto; font-size: 14px; color: #e07010; }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: sticky;
+    bottom: 0;
+    background: var(--gb-white);
+    border-top: 1px solid var(--gb-gray-mid);
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 0 12px;
+    z-index: 5;
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+  }
+  .nav-icon { font-size: 18px; }
+  .nav-label {
+    font-family: 'Sora', sans-serif;
+    font-size: 8px;
+    font-weight: 500;
+    color: var(--gb-muted);
+  }
+  .nav-item.active .nav-label { color: var(--gb-green); font-weight: 700; }
+  .nav-item.active .nav-icon { filter: none; }
+
+  /* ANNOTATION BUBBLES */
+  .annotation {
+    position: absolute;
+    background: white;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 11px;
+    font-family: 'Sora', sans-serif;
+    font-weight: 500;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    max-width: 160px;
+    line-height: 1.4;
+    z-index: 20;
+    pointer-events: none;
+  }
+  .annotation.bad {
+    color: #c0392b;
+    border-left: 3px solid #e74c3c;
+  }
+  .annotation.good {
+    color: var(--gb-green-dark);
+    border-left: 3px solid var(--gb-green);
+  }
+  .annotation::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: white;
+    transform: rotate(45deg);
+  }
+  .annotation.left::after { right: -4px; top: 12px; }
+  .annotation.right::after { left: -4px; top: 12px; }
+
+  /* COMPARISON TABLE */
+  .comparison {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 32px;
+    max-width: 680px;
+    width: 100%;
+    margin-top: 48px;
+    animation: fadeUp 0.7s 0.4s ease both;
+  }
+  .comparison h2 {
+    font-family: 'Sora', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .comparison-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+    align-items: center;
+  }
+  .comparison-row.header {
+    margin-bottom: 16px;
+  }
+  .comparison-row.header div {
+    font-family: 'Sora', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .comparison-row.header .col-label { color: #666; }
+  .comparison-row.header .col-before { color: #e74c3c; text-align: center; }
+  .comparison-row.header .col-after { color: var(--gb-green-light); text-align: center; }
+
+  .col-label {
+    font-size: 12px;
+    color: #888;
+    font-family: 'Sora', sans-serif;
+  }
+  .col-before, .col-after {
+    text-align: center;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: 'Sora', sans-serif;
+    font-weight: 500;
+  }
+  .col-before {
+    background: rgba(231,76,60,0.1);
+    color: #e74c3c;
+  }
+  .col-after {
+    background: rgba(0,166,81,0.1);
+    color: var(--gb-green-light);
+  }
+  .divider-row {
+    height: 1px;
+    background: rgba(255,255,255,0.06);
+    margin: 4px 0 16px;
+    grid-column: 1 / -1;
+  }
+
+  /* FOOTER NOTE */
+  .footer-note {
+    text-align: center;
+    margin-top: 40px;
+    padding-bottom: 40px;
+    animation: fadeUp 0.7s 0.5s ease both;
+  }
+  .footer-note p {
+    font-size: 12px;
+    color: #555;
+    font-family: 'Sora', sans-serif;
+  }
+  .footer-note strong { color: var(--gb-green-light); }
+
+  /* ANIMATIONS */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse-step {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,112,60,0.3); }
+    50% { box-shadow: 0 0 0 6px rgba(0,112,60,0); }
+  }
+  @keyframes shimmer {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+  }
+  .shimmer { animation: shimmer 2s infinite; }
+
+  /* STEP MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 20px;
+    padding: 28px;
+    max-width: 340px;
+    width: 100%;
+    animation: fadeUp 0.3s ease;
+  }
+  .modal h3 {
+    font-family: 'Sora', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gb-green-dark);
+    margin-bottom: 8px;
+  }
+  .modal p {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  .modal-btn {
+    width: 100%;
+    background: var(--gb-green);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-family: 'Sora', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .modal-close {
+    float: right;
+    font-size: 18px;
+    cursor: pointer;
+    color: #aaa;
+    background: none;
+    border: none;
+    margin-bottom: 4px;
+  }
+</style>
+</head>
+<body>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3 id="modal-title">Confirmar Identidade</h3>
+    <p id="modal-body">Para liberar seu acesso completo e fazer seu primeiro pedido, confirme seus dados com RG ou CNH. Leva menos de 2 minutos.</p>
+    <button class="modal-btn" onclick="completeStep()">Continuar →</button>
+  </div>
+</div>
+
+<div class="header">
+  <div class="header-label">Protótipo Interativo · Case PM GB.tech</div>
+  <h1>Tela de Ativação da Revendedora</h1>
+  <p>Comparação entre o estado atual e a proposta de melhoria. Clique nos passos do "Depois" para interagir.</p>
+</div>
+
+<div class="toggle-wrapper">
+  <button class="toggle-btn active before" id="btn-before" onclick="showBefore()">← Antes (hoje)</button>
+  <button class="toggle-btn" id="btn-after" onclick="showAfter()">Depois (proposta) →</button>
+</div>
+
+<div class="phones-container">
+
+  <!-- ANTES -->
+  <div class="phone-wrapper" id="wrapper-before">
+    <div class="phone-label before">⚠ Estado atual</div>
+    <div class="phone" style="position:relative;">
+      <div class="phone-notch"></div>
+      <div class="phone-screen before-screen">
+        <!-- App Header -->
+        <div class="app-header">
+          <div class="app-logo">🌿 O Boticário</div>
+          <div class="app-icons">
+            <div class="app-icon">🔔</div>
+            <div class="app-icon">🛒</div>
+          </div>
+        </div>
+
+        <!-- Search -->
+        <div class="search-bar">
+          <span>🔍</span>
+          <span>Buscar produtos</span>
+        </div>
+
+        <div class="welcome-text">Boas-vindas, Tatiana!</div>
+
+        <!-- PROBLEMA: Tela em branco -->
+        <div class="before-card">
+          <div class="before-icon">
+            <span class="headset">🎧</span>
+            <span class="clock-badge">🕐</span>
+          </div>
+          <h3>Cadastro aprovado</h3>
+          <p>Agora, basta aguardar nosso contato ou entre em contato com a Supervisão para fazer o seu primeiro pedido.</p>
+        </div>
+
+        <!-- Confirmar identidade -->
+        <div class="identity-card">
+          <div class="identity-card-header">
+            <div class="identity-icon">👤</div>
+            <div>
+              <h4>Garanta suas vantagens</h4>
+              <p>Confirme sua identidade para ter mais segurança</p>
+            </div>
+          </div>
+          <button class="identity-btn">Confirmar identidade →</button>
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-state">
+          <p>Nada por aqui ainda...</p>
+        </div>
+        <div class="empty-state" style="margin: 4px 12px; border-color: #f0f0f0;">
+          <p>Explore o catálogo no menu abaixo</p>
+        </div>
+
+        <!-- Bottom Nav -->
+        <div class="bottom-nav">
+          <div class="nav-item active">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Início</span>
+          </div>
+          <div class="nav-item">
+            <span class="nav-icon">📢</span>
+            <span class="nav-label">Divulgar</span>
+          </div>
+          <div class="nav-item">
+            <span class="nav-icon">🏪</span>
+            <span class="nav-label">Gestão</span>
+          </div>
+          <div class="nav-item">
+            <span class="nav-icon">📦</span>
+            <span class="nav-label">Pedidos</span>
+          </div>
+          <div class="nav-item">
+            <span class="nav-icon">☰</span>
+            <span class="nav-label">Menu</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Annotation -->
+    <div style="background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);border-radius:12px;padding:16px;max-width:300px;margin-top:4px;">
+      <p style="font-family:'Sora',sans-serif;font-size:11px;color:#e74c3c;font-weight:600;margin-bottom:8px;">❌ Problemas identificados em campo</p>
+      <ul style="font-size:11px;color:#aaa;line-height:1.8;padding-left:16px;">
+        <li>Tela em branco sem orientação de próximos passos</li>
+        <li>"Aguarde nosso contato" — mensagem passiva</li>
+        <li>Catálogo com 400+ produtos sem critério</li>
+        <li>Sem margem de lucro visível por produto</li>
+        <li>Suporte encerra às 17h — sem cobertura noturna</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- DEPOIS -->
+  <div class="phone-wrapper" id="wrapper-after" style="display:none;">
+    <div class="phone-label after">✅ Proposta de melhoria</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen after-screen">
+
+        <!-- Welcome Banner -->
+        <div class="welcome-banner">
+          <div class="greeting">Boas-vindas de volta 👋</div>
+          <h2>Olá, Tatiana!</h2>
+          <div class="subtitle">Complete os passos abaixo para fazer seu primeiro pedido e começar a ganhar.</div>
+        </div>
+
+        <!-- Progress + Steps -->
+        <div class="progress-section">
+          <div class="progress-header">
+            <span>Sua jornada de início</span>
+            <span class="pct" id="pct-label">1 de 3 concluído</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+          </div>
+
+          <!-- Step 1 - Done -->
+          <div class="step-item" onclick="openModal(1)">
+            <div class="step-circle done">✓</div>
+            <div class="step-info">
+              <h4>Cadastro aprovado</h4>
+              <p>Seus dados foram verificados</p>
+            </div>
+            <span class="step-arrow">›</span>
+          </div>
+
+          <!-- Step 2 - Active -->
+          <div class="step-item" id="step2" onclick="openModal(2)">
+            <div class="step-circle active shimmer" id="step2-circle">2</div>
+            <div class="step-info">
+              <h4 id="step2-title">Concluir trilha de início</h4>
+              <p id="step2-desc">Opcional · Ganhe amostras no 1º pedido</p>
+            </div>
+            <span class="step-arrow" id="step2-arrow">›</span>
+          </div>
+
+          <!-- Step 3 - Available (not locked) -->
+          <div class="step-item" id="step3" onclick="openModal('pedido')">
+            <div class="step-circle active" id="step3-circle" style="background:rgba(0,112,60,0.15);color:var(--gb-green,#00703c);border:2px solid #00703c;">3</div>
+            <div class="step-info">
+              <h4>Fazer primeiro pedido</h4>
+              <p>Disponível agora — conclua a trilha e ganhe amostras</p>
+            </div>
+            <span class="step-arrow">›</span>
+          </div>
+        </div>
+
+        <!-- Kit Destaque -->
+        <div class="kit-card">
+          <span class="kit-emoji">🎁</span>
+          <div class="kit-info">
+            <h4>Catálogo de Início Rápido</h4>
+            <p>Top 10 mais vendidos na sua região · Margem garantida</p>
+          </div>
+          <span class="kit-arrow">›</span>
+        </div>
+
+        <!-- Produtos sugeridos -->
+        <div class="section-title">
+          Para começar <span>Ver todos →</span>
+        </div>
+        <div class="products-scroll">
+          <div class="product-card">
+            <div class="product-img">
+              🌹
+              <span class="product-badge">-50%</span>
+            </div>
+            <div class="product-info">
+              <h5>Malbec Desod. Colônia</h5>
+              <div class="product-price">R$ 149,90</div>
+              <div class="product-gain">+R$ 37,50 est.*</div>
+            </div>
+          </div>
+          <div class="product-card">
+            <div class="product-img">
+              💆
+              <span class="product-badge">-50%</span>
+            </div>
+            <div class="product-info">
+              <h5>Siàge Shampoo Crescimento</h5>
+              <div class="product-price">R$ 69,90</div>
+              <div class="product-gain">+R$ 17,50 est.*</div>
+            </div>
+          </div>
+          <div class="product-card">
+            <div class="product-img">
+              👁️
+              <span class="product-badge">-50%</span>
+            </div>
+            <div class="product-info">
+              <h5>Máscara Big Bang 360º</h5>
+              <div class="product-price">R$ 54,90</div>
+              <div class="product-gain">+R$ 13,70 est.*</div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:0 12px 8px;font-size:9px;color:#bbb;font-family:'Sora',sans-serif;line-height:1.4;">
+          * Lucro estimado — sujeito à variação por ST (Substituição Tributária) conforme estado
+        </div>
+
+        <!-- Bottom Nav -->
+        <div class="bottom-nav">
+          <div class="nav-item active">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Início</span>
+          </div>
+          <div class="nav-item">
+            <span class="nav-icon">📢</span>
+            <span class="nav-label">Divulgar</span>
+          </div>
+          <div class="nav-item">
+            <span class="nav-icon">🏪</span>
+            <span class="nav-label">Gestão</span>
+          </div>
+          <div class="nav-item">
+            <span class="nav-icon">📦</span>
+            <span class="nav-label">Pedidos</span>
+          </div>
+          <div class="nav-item">
+            <span class="nav-icon">☰</span>
+            <span class="nav-label">Menu</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Annotation -->
+    <div style="background:rgba(0,166,81,0.08);border:1px solid rgba(0,166,81,0.25);border-radius:12px;padding:16px;max-width:300px;margin-top:4px;">
+      <p style="font-family:'Sora',sans-serif;font-size:11px;color:#00a651;font-weight:600;margin-bottom:8px;">✅ Melhorias propostas</p>
+      <ul style="font-size:11px;color:#aaa;line-height:1.8;padding-left:16px;">
+        <li>Jornada de 3 passos sequenciais e claros</li>
+        <li>Trilha com mini-quiz — opcional e incentivada (amostras)</li>
+        <li>Catálogo de Início Rápido — top 10 da região</li>
+        <li>Lucro estimado por produto + disclaimer de ST</li>
+        <li>Missões de gamificação nos 3 primeiros meses</li>
+      </ul>
+      <p style="font-size:10px;color:#555;margin-top:10px;font-family:'Sora',sans-serif;">👆 Clique nos passos para interagir</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- COMPARISON TABLE -->
+<div class="comparison">
+  <h2>Impacto esperado nas métricas</h2>
+  <div class="comparison-row header">
+    <div class="col-label">Métrica</div>
+    <div class="col-before">Antes</div>
+    <div class="col-after">Depois</div>
+  </div>
+  <div style="height:1px;background:rgba(255,255,255,0.06);margin-bottom:16px;"></div>
+  <div class="comparison-row">
+    <div class="col-label">Tempo até 1º pedido</div>
+    <div class="col-before">~30 dias</div>
+    <div class="col-after">No 1º ciclo</div>
+  </div>
+  <div class="comparison-row">
+    <div class="col-label">Taxa de conversão cadastro → pedido</div>
+    <div class="col-before">Baseline desconhecido</div>
+    <div class="col-after">Meta: +20% em 90d</div>
+  </div>
+  <div class="comparison-row">
+    <div class="col-label">Pedidos não finalizados</div>
+    <div class="col-before">Alta (sem dado)</div>
+    <div class="col-after">Meta: -30% em 60d</div>
+  </div>
+  <div class="comparison-row">
+    <div class="col-label">Dependência tecnológica</div>
+    <div class="col-before">—</div>
+    <div class="col-after">Baixa · Mês 2–4</div>
+  </div>
+</div>
+
+<div class="footer-note">
+  <p>Protótipo criado para o <strong>Case PM · GB.tech · Venda Direta</strong><br>Iniciativa #6 do roadmap · Impacto na North Star: Receita de revendedoras ativadas de forma autônoma no 1º ciclo</p>
+</div>
+
+<script>
+  let stepsDone = 1;
+
+  function showBefore() {
+    document.getElementById('wrapper-before').style.display = 'flex';
+    document.getElementById('wrapper-after').style.display = 'none';
+    document.getElementById('btn-before').classList.add('active', 'before');
+    document.getElementById('btn-after').classList.remove('active');
+  }
+
+  function showAfter() {
+    document.getElementById('wrapper-before').style.display = 'none';
+    document.getElementById('wrapper-after').style.display = 'flex';
+    document.getElementById('btn-after').classList.add('active');
+    document.getElementById('btn-after').classList.remove('before');
+    document.getElementById('btn-before').classList.remove('active', 'before');
+  }
+
+  const modalData = {
+    1: { title: '✅ Cadastro aprovado', body: 'Seus dados foram verificados com sucesso! Agora complete os próximos passos para fazer seu primeiro pedido.' },
+    2: { title: '📚 Trilha de início', body: '3 módulos de 2 minutos cada — produto, margem e ciclo. Não é obrigatória, mas quem conclui ganha amostras no primeiro pedido. Um mini-quiz ao final de cada módulo confirma o aprendizado.' },
+    3: { title: '🔒 Passo bloqueado', body: 'Conclua a trilha de início primeiro para desbloquear o primeiro pedido.' },
+    pedido: { title: '🛍️ Fazer primeiro pedido', body: 'Trilha concluída! Seu Catálogo de Início Rápido já está disponível com os produtos mais vendidos na sua região. Bora fazer seu primeiro pedido!' }
+  };
+
+  function openModal(step) {
+    if (step === 3 && stepsDone < 2) {
+      document.getElementById('modal-title').textContent = modalData[3].title;
+      document.getElementById('modal-body').textContent = modalData[3].body;
+      document.querySelector('.modal-btn').textContent = 'Entendi';
+      document.querySelector('.modal-btn').onclick = closeModal;
+    } else if (step === 2 && stepsDone < 2) {
+      document.getElementById('modal-title').textContent = modalData[2].title;
+      document.getElementById('modal-body').textContent = modalData[2].body;
+      document.querySelector('.modal-btn').textContent = 'Iniciar trilha →';
+      document.querySelector('.modal-btn').onclick = completeStep;
+    } else if (step === 'pedido') {
+      document.getElementById('modal-title').textContent = modalData['pedido'].title;
+      document.getElementById('modal-body').textContent = modalData['pedido'].body;
+      document.querySelector('.modal-btn').textContent = 'Ver Catálogo de Início Rápido →';
+      document.querySelector('.modal-btn').onclick = closeModal;
+    } else {
+      document.getElementById('modal-title').textContent = modalData[step].title;
+      document.getElementById('modal-body').textContent = modalData[step].body;
+      document.querySelector('.modal-btn').textContent = 'Fechar';
+      document.querySelector('.modal-btn').onclick = closeModal;
+    }
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+  }
+
+  function completeStep() {
+    closeModal();
+    if (stepsDone === 1) {
+      stepsDone = 2;
+      // Update step 2
+      const s2 = document.getElementById('step2-circle');
+      s2.classList.remove('active', 'shimmer');
+      s2.classList.add('done');
+      s2.textContent = '✓';
+      document.getElementById('step2-title').textContent = 'Trilha concluída';
+      document.getElementById('step2-desc').textContent = 'Quiz aprovado — você está pronta!';
+
+      // Unlock step 3
+      const s3 = document.getElementById('step3');
+      s3.style.opacity = '1';
+      const s3c = document.getElementById('step3-circle');
+      s3c.classList.remove('locked');
+      s3c.classList.add('active', 'shimmer');
+      s3c.textContent = '3';
+      document.getElementById('step3').querySelector('h4').textContent = 'Fazer primeiro pedido';
+      document.getElementById('step3').querySelector('p').textContent = 'Escolha seus produtos favoritos';
+
+      // Update progress
+      document.getElementById('progress-fill').style.width = '66%';
+      document.getElementById('pct-label').textContent = '2 de 3 concluído';
+
+      // Update step 3 click
+      document.getElementById('step3').onclick = () => openModal('pedido');
+    }
+  }
+
+  // Default show both on desktop
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) {
+      document.getElementById('wrapper-before').style.display = 'flex';
+      document.getElementById('wrapper-after').style.display = 'flex';
+      document.querySelector('.toggle-wrapper').style.display = 'none';
+    } else {
+      document.querySelector('.toggle-wrapper').style.display = 'flex';
+    }
+  });
+
+  if (window.innerWidth > 768) {
+    document.getElementById('wrapper-before').style.display = 'flex';
+    document.getElementById('wrapper-after').style.display = 'flex';
+    document.querySelector('.toggle-wrapper').style.display = 'none';
+  }
+</script>
+
+</body>
+</html>

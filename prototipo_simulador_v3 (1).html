@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Protótipo — Simulador de Margem no Catálogo</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gb-green: #00703c;
+    --gb-green-light: #00a651;
+    --gb-green-pale: #e8f5ee;
+    --gb-green-dark: #004d2a;
+    --gb-pink: #d4006a;
+    --gb-pink-pale: #fde8f3;
+    --gb-gray: #f5f5f5;
+    --gb-gray-mid: #e0e0e0;
+    --gb-text: #1a1a1a;
+    --gb-muted: #888;
+    --gb-white: #ffffff;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.07);
+    --shadow-md: 0 8px 24px rgba(0,0,0,0.11);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #0c1810;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 60px;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+    animation: fadeDown 0.6s ease both;
+  }
+  .header-label {
+    font-family: 'Sora', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gb-green-light);
+    margin-bottom: 12px;
+  }
+  .header h1 {
+    font-family: 'Sora', sans-serif;
+    font-size: clamp(22px, 4vw, 34px);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .header p { font-size: 14px; color: #888; max-width: 500px; margin: 0 auto; line-height: 1.6; }
+
+  /* TOGGLE */
+  .toggle-wrapper {
+    display: flex;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 50px;
+    padding: 4px;
+    margin-bottom: 48px;
+    animation: fadeDown 0.6s 0.1s ease both;
+  }
+  .toggle-btn {
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #aaa;
+    background: transparent;
+  }
+  .toggle-btn.active { background: var(--gb-green); color: #fff; box-shadow: 0 4px 16px rgba(0,112,60,0.4); }
+  .toggle-btn.active.before { background: #c0392b; box-shadow: 0 4px 16px rgba(192,57,43,0.4); }
+
+  /* PHONES */
+  .phones-container {
+    display: flex;
+    gap: 48px;
+    align-items: flex-start;
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: fadeUp 0.7s 0.2s ease both;
+  }
+
+  .phone-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .phone-label {
+    font-family: 'Sora', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 50px;
+    border: 1px solid;
+  }
+  .phone-label.before { color: #e74c3c; border-color: rgba(231,76,60,0.4); background: rgba(231,76,60,0.08); }
+  .phone-label.after { color: var(--gb-green-light); border-color: rgba(0,166,81,0.4); background: rgba(0,166,81,0.08); }
+
+  .phone {
+    width: 300px;
+    height: 620px;
+    background: var(--gb-white);
+    border-radius: 40px;
+    overflow: visible;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.1);
+    position: relative;
+    border: 8px solid #1a1a1a;
+    clip-path: none;
+  }
+  .phone-notch {
+    width: 100px; height: 24px;
+    background: #1a1a1a;
+    border-radius: 0 0 16px 16px;
+    margin: 0 auto;
+    position: absolute;
+    left: 50%; transform: translateX(-50%);
+    top: 0; z-index: 10;
+  }
+  .phone-screen {
+    width: 100%; height: 100%;
+    overflow-y: auto; overflow-x: hidden;
+    scrollbar-width: none;
+    background: var(--gb-gray);
+  }
+  .phone-screen::-webkit-scrollbar { display: none; }
+
+  /* APP HEADER */
+  .app-header {
+    background: var(--gb-white);
+    padding: 36px 14px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 5;
+    box-shadow: var(--shadow-sm);
+  }
+  .app-logo { font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 700; color: var(--gb-green); }
+  .app-icons { display: flex; gap: 10px; }
+  .app-icon { width: 28px; height: 28px; background: var(--gb-gray); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+
+  /* FILTER BAR */
+  .filter-bar {
+    background: var(--gb-white);
+    padding: 8px 12px;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-bottom: 1px solid var(--gb-gray-mid);
+  }
+  .filter-bar::-webkit-scrollbar { display: none; }
+  .filter-chip {
+    font-family: 'Sora', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 50px;
+    white-space: nowrap;
+    border: 1px solid var(--gb-gray-mid);
+    color: var(--gb-muted);
+    background: var(--gb-white);
+    cursor: pointer;
+  }
+  .filter-chip.active {
+    background: var(--gb-green);
+    color: white;
+    border-color: var(--gb-green);
+  }
+
+  /* SECTION TITLE */
+  .section-title {
+    padding: 12px 14px 6px;
+    font-family: 'Sora', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gb-text);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .section-title span { font-size: 10px; color: var(--gb-green); font-weight: 500; cursor: pointer; }
+
+  /* PRODUCT GRID — BEFORE */
+  .product-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 4px 10px 12px;
+  }
+
+  .prod-card {
+    background: var(--gb-white);
+    border-radius: var(--radius-sm);
+    overflow: visible;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .prod-card:active { transform: scale(0.97); }
+
+  .prod-img {
+    width: 100%;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    position: relative;
+  }
+  .prod-img.perfume { background: linear-gradient(135deg, #f5e6d3, #eedfc5); }
+  .prod-img.hair { background: linear-gradient(135deg, #e3f0e8, #d0e8d8); }
+  .prod-img.makeup { background: linear-gradient(135deg, #f5e0ea, #edd0e0); }
+  .prod-img.body { background: linear-gradient(135deg, #e0ecf5, #d0e0ee); }
+
+  .promo-badge {
+    position: absolute;
+    top: 6px; left: 6px;
+    background: var(--gb-pink);
+    color: white;
+    font-size: 8px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Sora', sans-serif;
+  }
+  .new-badge {
+    position: absolute;
+    top: 6px; right: 6px;
+    background: var(--gb-green);
+    color: white;
+    font-size: 8px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Sora', sans-serif;
+  }
+
+  .prod-info { padding: 8px; display: flex; flex-direction: column; flex: 1; }
+  .prod-brand { font-size: 8px; color: var(--gb-muted); text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Sora', sans-serif; font-weight: 600; }
+  .prod-name { font-family: 'Sora', sans-serif; font-size: 10px; font-weight: 600; color: var(--gb-text); line-height: 1.3; margin: 2px 0; min-height: 26px; }
+
+  /* BEFORE: only price */
+  .prod-price-only { font-size: 12px; font-weight: 700; color: var(--gb-text); font-family: 'Sora', sans-serif; }
+  .prod-price-old { font-size: 9px; color: #bbb; text-decoration: line-through; }
+
+  /* AFTER: price + gain */
+  .prod-price-row { display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto; padding-top: 6px; }
+  .prod-price-after { font-size: 11px; font-weight: 700; color: var(--gb-text); font-family: 'Sora', sans-serif; }
+  .prod-gain-pill {
+    background: linear-gradient(135deg, #e8f5ee, #d4eddc);
+    color: var(--gb-green-dark);
+    font-family: 'Sora', sans-serif;
+    padding: 4px 8px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    border: 1px solid rgba(0,112,60,0.2);
+    animation: gainPop 0.4s ease both;
+    line-height: 1.2;
+    width: 60px;
+    flex-shrink: 0;
+  }
+  .pill-value {
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--gb-green-dark);
+    white-space: nowrap;
+  }
+  .pill-pct {
+    font-size: 7.5px;
+    font-weight: 600;
+    color: var(--gb-green);
+    opacity: 0.85;
+    white-space: nowrap;
+  }
+  .prod-gain-bar {
+    height: 3px;
+    background: var(--gb-gray-mid);
+    border-radius: 2px;
+    margin-top: 5px;
+    overflow: hidden;
+  }
+  .prod-gain-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gb-green), var(--gb-green-light));
+    border-radius: 2px;
+    transition: width 0.6s ease;
+  }
+
+  /* CART BTN */
+  .cart-btn {
+    width: 100%;
+    background: var(--gb-gray);
+    color: var(--gb-muted);
+    border: none;
+    padding: 7px;
+    font-family: 'Sora', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: auto;
+    border-top: 1px solid var(--gb-gray-mid);
+    transition: all 0.2s;
+  }
+  .cart-btn:hover { background: var(--gb-green-pale); color: var(--gb-green); }
+  .cart-btn.added { background: var(--gb-green); color: white; }
+
+  /* SORT BAR (after only) */
+  .sort-bar {
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .sort-bar span { font-size: 10px; color: var(--gb-muted); font-family: 'Sora', sans-serif; }
+  .sort-select {
+    font-family: 'Sora', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--gb-green);
+    background: var(--gb-green-pale);
+    border: none;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  /* TOOLTIP on gain */
+  .gain-tooltip {
+    display: none;
+    position: fixed;
+    background: #004d2a;
+    color: white;
+    font-size: 10px;
+    font-family: 'Sora', sans-serif;
+    padding: 7px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+    z-index: 99999;
+    pointer-events: none;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+    top: 0; left: 0;
+  }
+  .prod-gain-pill { cursor: default; position: relative; }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: sticky; bottom: 0;
+    background: var(--gb-white);
+    border-top: 1px solid var(--gb-gray-mid);
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 0 12px;
+    z-index: 5;
+  }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; }
+  .nav-icon { font-size: 18px; }
+  .nav-label { font-family: 'Sora', sans-serif; font-size: 8px; font-weight: 500; color: var(--gb-muted); }
+  .nav-item.active .nav-label { color: var(--gb-green); font-weight: 700; }
+
+  /* MINI CART (after) */
+  .mini-cart {
+    position: sticky;
+    bottom: 52px;
+    margin: 0 10px;
+    background: var(--gb-green);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+    z-index: 4;
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  .mini-cart.visible { opacity: 1; transform: translateY(0); }
+  .mini-cart-left { display: flex; flex-direction: column; }
+  .mini-cart-left .items { font-size: 9px; opacity: 0.8; font-family: 'Sora', sans-serif; }
+  .mini-cart-left .total { font-size: 13px; font-weight: 700; font-family: 'Sora', sans-serif; }
+  .mini-cart-right { font-size: 10px; font-weight: 700; font-family: 'Sora', sans-serif; background: white; color: var(--gb-green); padding: 6px 12px; border-radius: 6px; }
+
+  /* SIMULATOR PANEL */
+  .simulator {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 32px;
+    max-width: 680px;
+    width: 100%;
+    margin-top: 48px;
+    animation: fadeUp 0.7s 0.3s ease both;
+  }
+  .simulator h2 {
+    font-family: 'Sora', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 6px;
+  }
+  .simulator .sim-desc {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 24px;
+    font-family: 'Sora', sans-serif;
+  }
+
+  .sim-products {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .sim-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 8px;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .sim-row.header {
+    background: transparent;
+    border-color: transparent;
+    padding: 0 12px;
+  }
+  .sim-row.header span {
+    font-family: 'Sora', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #555;
+  }
+  .sim-product-name {
+    font-family: 'Sora', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: #ccc;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sim-product-name span { font-size: 16px; }
+  .sim-qty {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .qty-btn {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.05);
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    line-height: 1;
+  }
+  .qty-btn:hover { background: rgba(255,255,255,0.15); }
+  .qty-num {
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    min-width: 16px;
+    text-align: center;
+  }
+  .sim-cost { font-family: 'Sora', sans-serif; font-size: 12px; color: #888; }
+  .sim-gain-val {
+    font-family: 'Sora', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gb-green-light);
+  }
+
+  .sim-total {
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .sim-total-box {
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px;
+    padding: 14px;
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+  .sim-total-box .label {
+    font-family: 'Sora', sans-serif;
+    font-size: 10px;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .sim-total-box .value {
+    font-family: 'Sora', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .sim-total-box.cost .value { color: #aaa; }
+  .sim-total-box.gain .value { color: var(--gb-green-light); }
+  .sim-total-box.margin .value { color: #f39c12; }
+  .sim-total-box.margin { grid-column: 1 / -1; background: rgba(0,166,81,0.06); border-color: rgba(0,166,81,0.2); }
+
+  /* FOOTER */
+  .footer-note {
+    text-align: center;
+    margin-top: 40px;
+    animation: fadeUp 0.7s 0.5s ease both;
+  }
+  .footer-note p { font-size: 12px; color: #444; font-family: 'Sora', sans-serif; }
+  .footer-note strong { color: var(--gb-green-light); }
+
+  /* ANIMATIONS */
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-16px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes gainPop { from { transform:scale(0.8); opacity:0; } to { transform:scale(1); opacity:1; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-label">Protótipo Interativo · Case PM GB.tech</div>
+  <h1>Simulador de Margem no Catálogo</h1>
+  <p>Antes: revendedora vê só o preço do cliente. Depois: vê quanto vai lucrar por produto — e simula o lucro do pedido inteiro. O dado já existe no sistema — é surfacing na UI.</p>
+</div>
+
+<div class="toggle-wrapper" id="toggle-wrapper">
+  <button class="toggle-btn active before" id="btn-before" onclick="showBefore()">← Antes (hoje)</button>
+  <button class="toggle-btn" id="btn-after" onclick="showAfter()">Depois (proposta) →</button>
+</div>
+
+<div class="phones-container">
+
+  <!-- ===== ANTES ===== -->
+  <div class="phone-wrapper" id="wrapper-before">
+    <div class="phone-label before">⚠ Catálogo atual</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="app-header">
+          <div class="app-logo">🌿 O Boticário</div>
+          <div class="app-icons">
+            <div class="app-icon">🔍</div>
+            <div class="app-icon">🛒</div>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <div class="filter-chip active">Todos</div>
+          <div class="filter-chip">Perfumes</div>
+          <div class="filter-chip">Cabelo</div>
+          <div class="filter-chip">Maquiagem</div>
+          <div class="filter-chip">Corpo</div>
+        </div>
+
+        <div class="section-title">Produtos do ciclo <span>Ordenar ›</span></div>
+
+        <div class="product-grid">
+          <!-- Produto 1 -->
+          <div class="prod-card">
+            <div class="prod-img perfume">
+              🌹
+              <span class="promo-badge">-50%</span>
+            </div>
+            <div class="prod-info">
+              <div class="prod-brand">O Boticário</div>
+              <div class="prod-name">Malbec Desod. Colônia</div>
+              <div class="prod-price-old">R$ 149,90</div>
+              <div class="prod-price-only">R$ 74,95</div>
+            </div>
+            <button class="cart-btn">+ Adicionar</button>
+          </div>
+
+          <!-- Produto 2 -->
+          <div class="prod-card">
+            <div class="prod-img hair">
+              💆
+              <span class="new-badge">NOVO</span>
+            </div>
+            <div class="prod-info">
+              <div class="prod-brand">Siàge</div>
+              <div class="prod-name">Shampoo Crescimento Acelerado</div>
+              <div class="prod-price-only">R$ 69,90</div>
+            </div>
+            <button class="cart-btn">+ Adicionar</button>
+          </div>
+
+          <!-- Produto 3 -->
+          <div class="prod-card">
+            <div class="prod-img makeup">
+              👁️
+              <span class="promo-badge">-30%</span>
+            </div>
+            <div class="prod-info">
+              <div class="prod-brand">QDB</div>
+              <div class="prod-name">Máscara Big Bang 360º</div>
+              <div class="prod-price-old">R$ 54,90</div>
+              <div class="prod-price-only">R$ 38,43</div>
+            </div>
+            <button class="cart-btn">+ Adicionar</button>
+          </div>
+
+          <!-- Produto 4 -->
+          <div class="prod-card">
+            <div class="prod-img body">
+              🧴
+            </div>
+            <div class="prod-info">
+              <div class="prod-brand">O.U.i Paris</div>
+              <div class="prod-name">Hidratante Corporal Rose</div>
+              <div class="prod-price-only">R$ 89,90</div>
+            </div>
+            <button class="cart-btn">+ Adicionar</button>
+          </div>
+        </div>
+
+        <div class="bottom-nav">
+          <div class="nav-item"><span class="nav-icon">🏠</span><span class="nav-label">Início</span></div>
+          <div class="nav-item active"><span class="nav-icon">📋</span><span class="nav-label">Catálogo</span></div>
+          <div class="nav-item"><span class="nav-icon">🏪</span><span class="nav-label">Gestão</span></div>
+          <div class="nav-item"><span class="nav-icon">📦</span><span class="nav-label">Pedidos</span></div>
+          <div class="nav-item"><span class="nav-icon">☰</span><span class="nav-label">Menu</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.25);border-radius:12px;padding:16px;max-width:300px;">
+      <p style="font-family:'Sora',sans-serif;font-size:11px;color:#e74c3c;font-weight:600;margin-bottom:8px;">❌ O que está faltando</p>
+      <ul style="font-size:11px;color:#aaa;line-height:1.9;padding-left:16px;">
+        <li>Só o preço do cliente final visível</li>
+        <li>Nenhuma indicação de quanto vai ganhar</li>
+        <li>Impossível priorizar por lucratividade</li>
+        <li>Revendedora decide às cegas</li>
+        <li>Paralisia de escolha com 400+ produtos</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== DEPOIS ===== -->
+  <div class="phone-wrapper" id="wrapper-after" style="display:none;">
+    <div class="phone-label after">✅ Com margem visível</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen" id="after-screen">
+        <div class="app-header">
+          <div class="app-logo">🌿 O Boticário</div>
+          <div class="app-icons">
+            <div class="app-icon">🔍</div>
+            <div class="app-icon" id="cart-icon">🛒</div>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <div class="filter-chip active">Para começar ⭐</div>
+          <div class="filter-chip">Perfumes</div>
+          <div class="filter-chip">Cabelo</div>
+          <div class="filter-chip">Maquiagem</div>
+          <div class="filter-chip">Corpo</div>
+        </div>
+
+        <div class="sort-bar">
+          <span>5 produtos</span>
+          <select class="sort-select" onchange="sortProducts(this.value)">
+            <option value="lucro">Maior lucro</option>
+            <option value="vendidos">Mais vendidos</option>
+            <option value="preco">Menor preço</option>
+          </select>
+        </div>
+
+        <div class="product-grid">
+          <!-- Produto 1 — com gain -->
+          <div class="prod-card">
+            <div class="prod-img perfume">
+              🌹
+              <span class="promo-badge">-50%</span>
+            </div>
+            <div class="prod-info">
+              <div class="prod-brand">O Boticário</div>
+              <div class="prod-name">Malbec Desod. Colônia</div>
+              <div class="prod-price-row">
+                <span class="prod-price-after">R$ 74,95</span>
+                <span class="prod-gain-pill" style="position:relative;">
+                  <span class="pill-value">+R$11,24</span><span class="pill-pct">lucro est. 15%</span>
+                  <span class="gain-tooltip">Lucro estimado de 15% — O Boticário · sujeito à variação por ST</span>
+                </span>
+              </div>
+              <div class="prod-gain-bar"><div class="prod-gain-fill" style="width:15%"></div></div>
+            </div>
+            <button class="cart-btn" onclick="addToCart(this, 11.24)">+ Adicionar</button>
+          </div>
+
+          <!-- Produto 2 -->
+          <div class="prod-card">
+            <div class="prod-img hair">
+              💆
+              <span class="new-badge">NOVO</span>
+            </div>
+            <div class="prod-info">
+              <div class="prod-brand">Siàge</div>
+              <div class="prod-name">Shampoo Crescimento Acelerado</div>
+              <div class="prod-price-row">
+                <span class="prod-price-after">R$ 69,90</span>
+                <span class="prod-gain-pill" style="position:relative;">
+                  <span class="pill-value">+R$10,49</span><span class="pill-pct">lucro est. 15%</span>
+                  <span class="gain-tooltip">Lucro estimado de 15% — O Boticário · sujeito à variação por ST</span>
+                </span>
+              </div>
+              <div class="prod-gain-bar"><div class="prod-gain-fill" style="width:15%"></div></div>
+            </div>
+            <button class="cart-btn" onclick="addToCart(this, 10.49)">+ Adicionar</button>
+          </div>
+
+          <!-- Produto 3 -->
+          <div class="prod-card">
+            <div class="prod-img makeup">
+              👁️
+              <span class="promo-badge">-30%</span>
+            </div>
+            <div class="prod-info">
+              <div class="prod-brand">QDB</div>
+              <div class="prod-name">Máscara Big Bang 360º</div>
+              <div class="prod-price-row">
+                <span class="prod-price-after">R$ 38,43</span>
+                <span class="prod-gain-pill" style="position:relative;">
+                  <span class="pill-value">+R$5,76</span><span class="pill-pct">lucro est. 15%</span>
+                  <span class="gain-tooltip">Lucro estimado de 15% — Quem Disse Berenice? · sujeito à variação por ST</span>
+                </span>
+              </div>
+              <div class="prod-gain-bar"><div class="prod-gain-fill" style="width:15%"></div></div>
+            </div>
+            <button class="cart-btn" onclick="addToCart(this, 5.76)">+ Adicionar</button>
+          </div>
+
+          <!-- Produto 4 — O.U.i maior margem -->
+          <div class="prod-card" style="border:1px solid rgba(0,166,81,0.3);">
+            <div class="prod-img body" style="background:linear-gradient(135deg,#fff0f5,#ffe0ea);">
+              🌸
+              <span class="new-badge" style="background:#9b59b6;">O.U.i</span>
+            </div>
+            <div class="prod-info">
+              <div class="prod-brand">O.U.i Paris</div>
+              <div class="prod-name">Hidratante Corporal Rose</div>
+              <div class="prod-price-row">
+                <span class="prod-price-after">R$ 89,90</span>
+                <span class="prod-gain-pill" style="background:#e8f5ee;position:relative;">
+                  <span class="pill-value">+R$26,97</span><span class="pill-pct" style="color:#00703c;opacity:1;font-weight:700;">melhor · 30% ★</span>
+                  <span class="gain-tooltip">Lucro estimado de 30% — O.U.i, melhor do ciclo · sujeito à variação por ST</span>
+                </span>
+              </div>
+              <div class="prod-gain-bar"><div class="prod-gain-fill" style="width:30%;background:linear-gradient(90deg,#9b59b6,#8e44ad)"></div></div>
+            </div>
+            <button class="cart-btn" onclick="addToCart(this, 26.97)">+ Adicionar</button>
+          </div>
+
+          <!-- Produto 5 — Eudora multimarca -->
+          <div class="prod-card" style="border:1px solid rgba(212,0,106,0.3);grid-column:span 2;">
+            <div style="display:flex;gap:10px;">
+              <div class="prod-img perfume" style="width:90px;min-width:90px;height:90px;background:linear-gradient(135deg,#fde8f3,#f9cce8);">
+                🌺
+                <span class="new-badge" style="background:#d4006a;">Eudora</span>
+              </div>
+              <div class="prod-info" style="flex:1;">
+                <div class="prod-brand" style="color:#d4006a;">Eudora · Multimarca</div>
+                <div class="prod-name">Glamour Desod. Colônia 75ml</div>
+                <div style="font-size:9px;color:#d4006a;margin-bottom:4px;font-family:'Sora',sans-serif;font-weight:600;">💡 Adicionar Eudora ao mix = +68% receita média</div>
+                <div class="prod-price-row">
+                  <span class="prod-price-after">R$ 79,90</span>
+                  <span class="prod-gain-pill" style="background:#fde8f3;color:#d4006a;position:relative;">
+                    <span class="pill-value">+R$23,97</span><span class="pill-pct">lucro est. 30%</span>
+                    <span class="gain-tooltip" style="background:#d4006a;">Lucro estimado de 30% — sujeito à variação por ST</span>
+                  </span>
+                </div>
+                <div class="prod-gain-bar"><div class="prod-gain-fill" style="width:30%;background:linear-gradient(90deg,#d4006a,#ff4da6)"></div></div>
+              </div>
+            </div>
+            <button class="cart-btn" style="border-top:1px solid rgba(212,0,106,0.2);" onclick="addToCart(this, 23.97)">+ Adicionar Eudora</button>
+          </div>
+        </div>
+
+        <!-- Mini cart -->
+        <div class="mini-cart" id="mini-cart">
+          <div class="mini-cart-left">
+            <span class="items" id="cart-items-label">0 produtos</span>
+            <span class="total">Lucro est.: <span id="cart-gain">R$0,00</span></span>
+          </div>
+          <div class="mini-cart-right">Ver pedido →</div>
+        </div>
+
+        <div class="bottom-nav">
+          <div class="nav-item"><span class="nav-icon">🏠</span><span class="nav-label">Início</span></div>
+          <div class="nav-item active"><span class="nav-icon">📋</span><span class="nav-label">Catálogo</span></div>
+          <div class="nav-item"><span class="nav-icon">🏪</span><span class="nav-label">Gestão</span></div>
+          <div class="nav-item"><span class="nav-icon">📦</span><span class="nav-label">Pedidos</span></div>
+          <div class="nav-item"><span class="nav-icon">☰</span><span class="nav-label">Menu</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:rgba(0,166,81,0.06);border:1px solid rgba(0,166,81,0.2);border-radius:12px;padding:16px;max-width:300px;">
+      <p style="font-family:'Sora',sans-serif;font-size:11px;color:#00a651;font-weight:600;margin-bottom:8px;">✅ O que foi adicionado</p>
+      <ul style="font-size:11px;color:#aaa;line-height:1.9;padding-left:16px;">
+        <li>Lucro estimado por produto (com disclaimer de ST)</li>
+        <li>Barra de margem visual por item</li>
+        <li>Filtro "Para começar" ativo</li>
+        <li>Ordenação por maior lucro estimado</li>
+        <li>Mini carrinho com lucro estimado acumulado</li>
+        <li>Produto Eudora destacado — argumento multimarca</li>
+      </ul>
+      <p style="font-size:10px;color:#555;margin-top:10px;font-family:'Sora',sans-serif;">👆 Clique em "Adicionar" para simular</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- SIMULATOR -->
+<div class="simulator">
+  <h2>🧮 Simule seu pedido</h2>
+  <p class="sim-desc">Ajuste as quantidades e veja o ganho total em tempo real — exatamente como a revendedora veria no app.</p>
+
+  <!-- MARGENS POR MARCA -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;">
+
+    <div style="display:flex;align-items:center;gap:10px;background:rgba(0,112,60,0.1);border:1px solid rgba(0,112,60,0.25);border-radius:10px;padding:9px 12px;">
+      <span style="font-size:18px;line-height:1;">💚</span>
+      <div>
+        <div style="font-family:'Sora',sans-serif;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#00a651;margin-bottom:2px;">O Boticário</div>
+        <div style="font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:#fff;">a partir de <span style="color:#00a651;">15%</span></div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;background:rgba(180,0,120,0.08);border:1px solid rgba(180,0,120,0.2);border-radius:10px;padding:9px 12px;">
+      <span style="font-size:18px;line-height:1;">💜</span>
+      <div>
+        <div style="font-family:'Sora',sans-serif;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#cc44aa;margin-bottom:2px;">Eudora</div>
+        <div style="font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:#fff;">a partir de <span style="color:#cc44aa;">20%</span></div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;background:rgba(220,80,120,0.08);border:1px solid rgba(220,80,120,0.2);border-radius:10px;padding:9px 12px;">
+      <span style="font-size:18px;line-height:1;">💕</span>
+      <div>
+        <div style="font-family:'Sora',sans-serif;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#e0608a;margin-bottom:2px;">Quem Disse Berenice?</div>
+        <div style="font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:#fff;">a partir de <span style="color:#e0608a;">15%</span></div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;background:rgba(220,220,220,0.05);border:1px solid rgba(220,220,220,0.15);border-radius:10px;padding:9px 12px;">
+      <span style="font-size:18px;line-height:1;">🖤</span>
+      <div>
+        <div style="font-family:'Sora',sans-serif;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#bbb;margin-bottom:2px;">O.U.i</div>
+        <div style="font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:#fff;">a partir de <span style="color:#e8e8e8;">30%</span></div>
+      </div>
+    </div>
+
+  </div>
+  <div style="font-size:9px;color:#444;font-family:'Sora',sans-serif;margin-bottom:20px;line-height:1.5;">ℹ️ Margens mínimas por marca — o lucro real varia por produto e pode ser maior. Sujeito à variação por ST conforme estado.</div>
+
+  <div class="sim-row header">
+    <span>Produto</span>
+    <span>Qtd</span>
+    <span>Custo</span>
+    <span>Lucro est.*</span>
+  </div>
+
+  <div class="sim-products">
+    <!-- Malbec — O Boticário 15% -->
+    <div class="sim-row">
+      <div class="sim-product-name"><span>🌹</span> Malbec <span style="font-size:8px;background:rgba(0,112,60,0.15);color:#00a651;padding:1px 5px;border-radius:3px;margin-left:4px;font-family:'Sora',sans-serif;font-weight:700;">O Boticário</span></div>
+      <div class="sim-qty">
+        <button class="qty-btn" onclick="changeQty('q1', -1)">−</button>
+        <span class="qty-num" id="q1">1</span>
+        <button class="qty-btn" onclick="changeQty('q1', 1)">+</button>
+      </div>
+      <div class="sim-cost" id="c1">R$ 74,95</div>
+      <div class="sim-gain-val" id="g1">+R$ 11,24</div>
+    </div>
+    <!-- Eudora Glamour — Eudora 20% -->
+    <div class="sim-row" style="border:1px solid rgba(204,68,170,0.2);background:rgba(204,68,170,0.04);">
+      <div class="sim-product-name" style="color:#cc44aa;"><span>🌺</span> Eudora Glamour <span style="font-size:8px;background:rgba(204,68,170,0.12);color:#cc44aa;padding:1px 5px;border-radius:3px;margin-left:4px;font-family:'Sora',sans-serif;font-weight:700;">Multimarca 💜</span></div>
+      <div class="sim-qty">
+        <button class="qty-btn" onclick="changeQty('q2', -1)">−</button>
+        <span class="qty-num" id="q2">1</span>
+        <button class="qty-btn" onclick="changeQty('q2', 1)">+</button>
+      </div>
+      <div class="sim-cost" id="c2">R$ 79,90</div>
+      <div class="sim-gain-val" id="g2" style="color:#cc44aa;">+R$ 15,98</div>
+    </div>
+    <!-- Big Bang — Quem Disse Berenice? 15% -->
+    <div class="sim-row">
+      <div class="sim-product-name"><span>👁️</span> Big Bang <span style="font-size:8px;background:rgba(224,96,138,0.12);color:#e0608a;padding:1px 5px;border-radius:3px;margin-left:4px;font-family:'Sora',sans-serif;font-weight:700;">QDB</span></div>
+      <div class="sim-qty">
+        <button class="qty-btn" onclick="changeQty('q3', -1)">−</button>
+        <span class="qty-num" id="q3">1</span>
+        <button class="qty-btn" onclick="changeQty('q3', 1)">+</button>
+      </div>
+      <div class="sim-cost" id="c3">R$ 38,43</div>
+      <div class="sim-gain-val" id="g3">+R$ 5,76</div>
+    </div>
+    <!-- O.U.i Rose — O.U.i 30% (melhor margem) -->
+    <div class="sim-row" style="border:1px solid rgba(220,220,220,0.15);background:rgba(220,220,220,0.03);">
+      <div class="sim-product-name"><span>🌸</span> O.U.i Rose <span style="font-size:8px;background:rgba(220,220,220,0.1);color:#ddd;padding:1px 5px;border-radius:3px;margin-left:4px;font-family:'Sora',sans-serif;font-weight:700;">O.U.i 🖤 melhor margem</span></div>
+      <div class="sim-qty">
+        <button class="qty-btn" onclick="changeQty('q4', -1)">−</button>
+        <span class="qty-num" id="q4">1</span>
+        <button class="qty-btn" onclick="changeQty('q4', 1)">+</button>
+      </div>
+      <div class="sim-cost" id="c4">R$ 89,90</div>
+      <div class="sim-gain-val" id="g4">+R$ 26,97</div>
+    </div>
+  </div>
+
+  <div class="sim-total">
+    <div class="sim-total-box cost">
+      <div class="label">Investimento total</div>
+      <div class="value" id="total-cost">R$ 283,18</div>
+    </div>
+    <div class="sim-total-box gain">
+      <div class="label">Lucro estimado*</div>
+      <div class="value" id="total-gain">+R$ 59,95</div>
+    </div>
+    <div class="sim-total-box margin">
+      <div class="label">Margem média do pedido</div>
+      <div class="value" id="total-margin">21,2% — acima do mínimo do canal</div>
+    </div>
+  </div>
+  <p style="font-size:10px;color:#444;margin-top:14px;font-family:'Sora',sans-serif;line-height:1.5;">* Lucro estimado — sujeito à variação por ST (Substituição Tributária) conforme estado. Valores exibidos como referência para apoiar a decisão de compra.</p>
+</div>
+  <p>Iniciativa #7 do roadmap · <strong>Margem visível no catálogo</strong><br>
+  Dado já existe no sistema — é surfacing na UI · Esforço: baixo · Impacto: alto</p>
+</div>
+
+<script>
+  // Products data
+  const products = {
+    q1: { price: 74.95, margin: 0.15, name: '🌹 Malbec' },        // O Boticário ≥15%
+    q2: { price: 79.90, margin: 0.20, name: '🌺 Eudora Glamour' }, // Eudora ≥20%
+    q3: { price: 38.43, margin: 0.15, name: '👁️ Big Bang' },      // QDB ≥15%
+    q4: { price: 89.90, margin: 0.30, name: '🌸 O.U.i Rose' },    // O.U.i ≥30%
+  };
+
+  function changeQty(id, delta) {
+    const el = document.getElementById(id);
+    const current = parseInt(el.textContent);
+    const next = Math.max(0, current + delta);
+    el.textContent = next;
+    const num = id.replace('q', '');
+    const p = products[id];
+    const cost = p.price * next;
+    const gain = cost * p.margin;
+    document.getElementById('c' + num).textContent = 'R$ ' + cost.toFixed(2).replace('.', ',');
+    document.getElementById('g' + num).textContent = '+R$ ' + gain.toFixed(2).replace('.', ',');
+    recalcTotal();
+  }
+
+  function recalcTotal() {
+    let totalCost = 0, totalGain = 0;
+    for (const [id, p] of Object.entries(products)) {
+      const qty = parseInt(document.getElementById(id).textContent);
+      const cost = p.price * qty;
+      totalCost += cost;
+      totalGain += cost * p.margin;
+    }
+    const margin = totalCost > 0 ? (totalGain / totalCost * 100) : 0;
+    document.getElementById('total-cost').textContent = 'R$ ' + totalCost.toFixed(2).replace('.', ',');
+    document.getElementById('total-gain').textContent = '+R$ ' + totalGain.toFixed(2).replace('.', ',');
+    document.getElementById('total-margin').textContent = margin.toFixed(1) + '% — ' + (margin >= 25 ? 'acima da média do canal' : 'abaixo da média — revise o mix');
+  }
+
+  // Sort catalog cards
+  const sortOrders = {
+    lucro:    ['q4','q3','q1','q2'],  // O.U.i 30%, QDB 15%, Malbec 15%, Eudora 20%
+    vendidos: ['q1','q2','q3','q4'],
+    preco:    ['q3','q1','q2','q4'],
+  };
+
+  // Map card ids to DOM cards (indexed in order they appear)
+  function sortProducts(mode) {
+    const grid = document.querySelector('#wrapper-after .product-grid');
+    if (!grid) return;
+    const cards = Array.from(grid.children);
+    const order = sortOrders[mode] || sortOrders['lucro'];
+    // cards[0]=q1,cards[1]=q2,cards[2]=q3,cards[3]=q4
+    const cardMap = { q1: cards[0], q2: cards[1], q3: cards[2], q4: cards[3] };
+    order.forEach(id => { if (cardMap[id]) grid.appendChild(cardMap[id]); });
+  }
+
+  // Cart state
+  let cartItems = 0;
+  let cartGain = 0;
+
+  function addToCart(btn, gain) {
+    if (btn.classList.contains('added')) return;
+    btn.classList.add('added');
+    btn.textContent = '✓ Adicionado';
+    cartItems++;
+    cartGain += gain;
+    document.getElementById('cart-items-label').textContent = cartItems + (cartItems === 1 ? ' produto' : ' produtos');
+    document.getElementById('cart-gain').textContent = 'R$' + cartGain.toFixed(2).replace('.', ',');
+    document.getElementById('mini-cart').classList.add('visible');
+  }
+
+  // Toggle
+  function showBefore() {
+    document.getElementById('wrapper-before').style.display = 'flex';
+    document.getElementById('wrapper-after').style.display = 'none';
+    document.getElementById('btn-before').classList.add('active', 'before');
+    document.getElementById('btn-after').classList.remove('active');
+  }
+
+  function showAfter() {
+    document.getElementById('wrapper-before').style.display = 'none';
+    document.getElementById('wrapper-after').style.display = 'flex';
+    document.getElementById('btn-after').classList.add('active');
+    document.getElementById('btn-before').classList.remove('active', 'before');
+  }
+
+  // Desktop: show both
+  function handleResize() {
+    if (window.innerWidth > 768) {
+      document.getElementById('wrapper-before').style.display = 'flex';
+      document.getElementById('wrapper-after').style.display = 'flex';
+      document.getElementById('toggle-wrapper').style.display = 'none';
+    } else {
+      document.getElementById('toggle-wrapper').style.display = 'flex';
+    }
+  }
+  window.addEventListener('resize', handleResize);
+  handleResize();
+  // Tooltip: fixed position, tracks mouse, never clipped
+  (function() {
+    document.querySelectorAll('.prod-gain-pill').forEach(pill => {
+      const tip = pill.querySelector('.gain-tooltip');
+      if (!tip) return;
+      pill.addEventListener('mouseenter', function(e) {
+        tip.style.display = 'block';
+        move(e);
+      });
+      pill.addEventListener('mousemove', move);
+      pill.addEventListener('mouseleave', function() {
+        tip.style.display = 'none';
+      });
+      function move(e) {
+        const tw = tip.offsetWidth;
+        const th = tip.offsetHeight;
+        let x = e.clientX - tw / 2;
+        let y = e.clientY - th - 12;
+        if (x < 8) x = 8;
+        if (x + tw > window.innerWidth - 8) x = window.innerWidth - tw - 8;
+        if (y < 8) y = e.clientY + 16;
+        tip.style.left = x + 'px';
+        tip.style.top  = y + 'px';
+      }
+    });
+  })();
+</script>
+</body>
+</html>
